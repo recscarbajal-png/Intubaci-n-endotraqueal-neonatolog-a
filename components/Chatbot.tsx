@@ -29,13 +29,16 @@ const Chatbot: React.FC = () => {
 
     const initializeChat = useCallback(async () => {
         setError(null);
-        if (!process.env.API_KEY) {
+        // FIX: Safely access process.env to prevent crashes in environments where it's not defined.
+        const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+
+        if (!apiKey) {
             setError("La clave de API no está configurada. El chatbot no puede funcionar.");
             console.error("API_KEY environment variable not set.");
             return;
         }
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey });
             chatRef.current = ai.chats.create({
                 model: 'gemini-2.5-flash',
                 config: {

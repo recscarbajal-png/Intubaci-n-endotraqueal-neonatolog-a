@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { CHECKLIST_ITEMS, STEPPER_STEPS, AI_QUIZ_INSTRUCTION } from '../constants';
@@ -178,14 +177,17 @@ const VideoCard: React.FC<{ src: string; title: string; description: string }> =
         setError(null);
         setQuiz(null);
 
-        if (!process.env.API_KEY) {
+        // FIX: Safely access process.env to prevent crashes in environments where it's not defined.
+        const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+
+        if (!apiKey) {
             setError("La clave de API no está configurada.");
             setIsLoading(false);
             return;
         }
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey });
             const prompt = `Basado en un video titulado "${title}" que trata sobre "${description}", genera una pregunta de opción múltiple para evaluar la comprensión del espectador. La pregunta debe ser clínicamente relevante y basarse en las mejores prácticas del Programa de Reanimación Neonatal (PRN). Proporciona la pregunta, 4 opciones y el índice (0-3) de la respuesta correcta.`;
 
             const response = await ai.models.generateContent({
